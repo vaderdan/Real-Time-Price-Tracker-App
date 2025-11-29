@@ -12,6 +12,7 @@ struct StockSymbol: Decodable, Hashable {
     var initial_price: Double
     var company: String
     var description: String
+    var symbol: String
 }
 
 struct StockDetailView: View {
@@ -44,7 +45,7 @@ struct ContentView: View {
                         StockDetailView(stock: item)
                     } label: {
                         HStack{
-                            Text(item.company)
+                            Text(item.symbol)
                             Text(item.initial_price, format: .number.precision(.fractionLength(2)))
                             Image(systemName: "arrow.2.circlepath.circle")
                                 .imageScale(.large)
