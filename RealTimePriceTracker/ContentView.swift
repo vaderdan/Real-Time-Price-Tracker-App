@@ -35,6 +35,7 @@ struct ContentView: View {
     @State private var stocks: [StockSymbol] = []
     @State private var started: Bool = true
     @State private var sockets: [WebSocket] = []
+    @State private var connectedCount: Int = 0
     
     func fetchStocks() -> [StockSymbol] {
         let url = Bundle.main.url(forResource: "stocks", withExtension: "json")
@@ -47,6 +48,7 @@ struct ContentView: View {
     }
     
     func disconnectAllSockets() {
+        connectedCount = sockets.count
         sockets.forEach { socket in
             socket.disconnect()        }
     }
@@ -57,7 +59,7 @@ struct ContentView: View {
         }
     }
     
-    func startSocket(stock: StockSymbol, callback: @escaping (StockDelta) -> Void) -> WebSocket {
+    func startSocket(stock: StockSymbol, isConnectedCallback: @escaping (Bool) -> Void, callback: @escaping (StockDelta) -> Void) -> WebSocket {
         var request = URLRequest(url: URL(string: "wss://ws.postman-echo.com/raw")!)
         request.timeoutInterval = 5
         let socket = WebSocket(request: request)
@@ -65,9 +67,11 @@ struct ContentView: View {
         socket.onEvent = { event in
             switch event {
             case .connected(_):
-                break
+                isConnectedCallback(true)
             case .disconnected(_, _):
-                break
+                isConnectedCallback(false)
+            case .cancelled:
+                isConnectedCallback(false)
             case .text(let string):
                 if let data = string.data(using: .utf8),
                    let delta = try? JSONDecoder().decode(StockDelta.self, from: data) {
@@ -111,7 +115,7 @@ struct ContentView: View {
                 .navigationTitle("Stocks")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) { Text("Conn").foregroundColor(.green) }
+                    ToolbarItem(placement: .topBarLeading) { Text( "Conn").foregroundColor(connectedCount >= sockets.count ? .green : .red) }
                     ToolbarItem(placement: .primaryAction) {
                         Button(started == true ? "Stop" : "Start") {
                             started.toggle()
@@ -127,13 +131,18 @@ struct ContentView: View {
             }
             
         }
-        .navigationTitle("Menu")
         .padding()
         .onAppear {
             stocks = fetchStocks()
             
             sockets = stocks.map { item in
-                startSocket(stock: item) { delta in
+                startSocket(stock: item, isConnectedCallback: { connected in
+                    if(connected) {
+                        connectedCount += 1
+                    } else {
+                        connectedCount -= 1
+                    }
+                }) { delta in
                     // Ensure state mutation happens on the main actor
                     DispatchQueue.main.async {
                         stocks = stocks
