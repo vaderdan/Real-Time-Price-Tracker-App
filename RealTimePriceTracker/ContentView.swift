@@ -8,13 +8,15 @@
 import SwiftUI
 
 
-struct StockSymbol: Decodable {
+struct StockSymbol: Decodable, Hashable {
     var initial_price: Double
     var company: String
     var description: String
 }
 
 struct ContentView: View {
+    @State var stocks: [StockSymbol] = []
+    
     func fetchStocks() -> [StockSymbol] {
         let url = Bundle.main.url(forResource: "stocks", withExtension: "json")
         let data: Data
@@ -24,15 +26,21 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            List(stocks, id: \.self) { item in
+                HStack{
+                    Text(item.company)
+                    Text("\(item.initial_price)")
+                    Image(systemName: "arrow.2.circlepath.circle")
+                        .imageScale(.large)
+                        .foregroundStyle(.tint)
+                }
+            }
         }
+        .navigationTitle("Menu")
         .padding()
         .onAppear()
         {
-            print(fetchStocks())
+            stocks = fetchStocks()
         }
     }
 }
