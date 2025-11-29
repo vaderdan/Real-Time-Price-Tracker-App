@@ -33,6 +33,7 @@ struct StockDetailView: View {
 
 struct ContentView: View {
     @State var stocks: [StockSymbol] = []
+    @State var started: Bool = true
     
     func fetchStocks() -> [StockSymbol] {
         let url = Bundle.main.url(forResource: "stocks", withExtension: "json")
@@ -44,7 +45,7 @@ struct ContentView: View {
         })
     }
     
-    func startSocket(stock: StockSymbol, callback: @escaping (StockDelta) -> Void) {
+    func startSocket(stock: StockSymbol, callback: @escaping (StockDelta) -> Void) -> WebSocket {
         var request = URLRequest(url: URL(string: "wss://ws.postman-echo.com/raw")!)
         request.timeoutInterval = 5
         let socket = WebSocket(request: request)
@@ -73,6 +74,8 @@ struct ContentView: View {
         Timer.scheduledTimer(withTimeInterval: 2, repeats: true, block: { _ in
             socket.write(string: "{ \"symbol\": \"\(stock.symbol)\", \"delta_price\": \(Double.random(in: -20...20)) }", completion: nil)
             })
+        
+        return socket
     }
     
     var body: some View {
@@ -95,7 +98,18 @@ struct ContentView: View {
                     }
                     
                 }
+                .navigationTitle("Stocks")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) { Text("Conn").foregroundColor(.green) }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(started == true ? "Stop" : "Start") {
+                            started = !started
+                        }
+                    }
+                }
             }
+            
         }
         .navigationTitle("Menu")
         .padding()
