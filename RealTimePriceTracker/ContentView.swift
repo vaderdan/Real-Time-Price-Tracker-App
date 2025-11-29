@@ -22,6 +22,9 @@ struct ContentView: View {
         let data: Data
         data = try! Data(contentsOf: url!)
         return try! JSONDecoder().decode([StockSymbol].self, from: data)
+            .sorted(by: { lhs, rhs in
+            lhs.initial_price < rhs.initial_price
+        })
     }
     
     var body: some View {
