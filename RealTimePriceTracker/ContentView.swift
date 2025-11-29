@@ -23,7 +23,9 @@ struct StockSymbol: Decodable, Hashable {
 }
 
 struct StockDetailView: View {
-    let stock: StockSymbol
+    @State var stock: StockSymbol
+    var sockets: [WebSocket] = []
+    @State private var cached_onEvent: [((WebSocketEvent) -> Void)?] = []
 
     var body: some View {
         HStack {
@@ -37,8 +39,30 @@ struct StockDetailView: View {
                 .clipped()
                 .foregroundStyle(.tint)
         }
+        .onDisappear() {
+            sockets.forEach { item in
+                item.onEvent = cached_onEvent.popLast()!
+            }
+        }
         .onAppear() {
-            
+            sockets.forEach { item in
+                cached_onEvent.append(item.onEvent)
+                item.onEvent = { event in
+                    switch event {
+                    case .text(let string):
+                        if let data = string.data(using: .utf8),
+                           let delta = try? JSONDecoder().decode(StockDelta.self, from: data) {
+                            if stock.symbol == delta.symbol {
+                                stock.delta_price = delta.delta_price
+                            }
+                        }
+                    case .error(let error):
+                        print("Error: \(String(describing: error))")
+                    default:
+                        break
+                    }
+                }
+            }
         }
         
     }
@@ -63,7 +87,8 @@ struct ContentView: View {
     func disconnectAllSockets() {
         connectedCount = sockets.count
         sockets.forEach { socket in
-            socket.disconnect()        }
+            socket.disconnect()
+        }
     }
     
     func connectAllSockets() {
@@ -91,7 +116,7 @@ struct ContentView: View {
                     callback(delta)
                 }
             case .error(let error):
-                print("Error: \(error)")
+                print("Error: \(String(describing: error))")
             default:
                 break
             }
@@ -110,7 +135,7 @@ struct ContentView: View {
             NavigationStack {
                 List(stocks, id: \.self) { item in
                     NavigationLink {
-                        StockDetailView(stock: item)
+                        StockDetailView(stock: item, sockets: sockets)
                     } label: {
                         HStack{
                             Text(item.symbol)
