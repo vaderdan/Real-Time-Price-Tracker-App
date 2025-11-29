@@ -26,8 +26,21 @@ struct StockDetailView: View {
     let stock: StockSymbol
 
     var body: some View {
-        Text("Selected stock: \(stock.company)")
-            .font(.largeTitle)
+        HStack {
+            Text("Selected stock: \(stock.company)")
+            Text(stock.symbol)
+            Text(stock.initial_price + (stock.delta_price ?? 0.0), format: .number.precision(.fractionLength(2)))
+            Image((stock.delta_price ?? 0) >= 0 ? "up" : "down")
+                .resizable()
+                .frame(width: 20, height: 20)
+                .scaledToFill()
+                .clipped()
+                .foregroundStyle(.tint)
+        }
+        .onAppear() {
+            
+        }
+        
     }
 }
 
