@@ -23,7 +23,7 @@ struct ContentView: View {
         data = try! Data(contentsOf: url!)
         return try! JSONDecoder().decode([StockSymbol].self, from: data)
             .sorted(by: { lhs, rhs in
-            lhs.initial_price < rhs.initial_price
+            lhs.initial_price > rhs.initial_price
         })
     }
     
