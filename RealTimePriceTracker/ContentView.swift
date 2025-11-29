@@ -106,8 +106,6 @@ struct ContentView: View {
             switch event {
             case .connected(_):
                 isConnectedCallback(true)
-            case .disconnected(_, _):
-                isConnectedCallback(false)
             case .cancelled:
                 isConnectedCallback(false)
             case .text(let string):
