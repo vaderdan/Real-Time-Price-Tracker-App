@@ -6,13 +6,41 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXCopyFilesBuildPhase section */
+		3033AD8B2EDB7F6D00616134 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		30A49F812EDABA5500246A63 /* RealTimePriceTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealTimePriceTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		3033AD8D2EDB7F8900616134 /* Exceptions for "RealTimePriceTracker" folder in "Copy Files" phase from "RealTimePriceTracker" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				Frameworks/Starscream.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
+			};
+			buildPhase = 3033AD8B2EDB7F6D00616134 /* CopyFiles */;
+			membershipExceptions = (
+				Frameworks/Starscream.xcframework,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		30A49F832EDABA5500246A63 /* RealTimePriceTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3033AD8D2EDB7F8900616134 /* Exceptions for "RealTimePriceTracker" folder in "Copy Files" phase from "RealTimePriceTracker" target */,
+			);
 			path = RealTimePriceTracker;
 			sourceTree = "<group>";
 		};
@@ -55,6 +83,8 @@
 				30A49F7D2EDABA5500246A63 /* Sources */,
 				30A49F7E2EDABA5500246A63 /* Frameworks */,
 				30A49F7F2EDABA5500246A63 /* Resources */,
+				3033AD8A2EDB7DB400616134 /* ShellScript */,
+				3033AD8B2EDB7F6D00616134 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -113,6 +143,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3033AD8A2EDB7DB400616134 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/Starscream.xcframework",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = "/opt/homebrew/bin/carthage copy-frameworks";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		30A49F7D2EDABA5500246A63 /* Sources */ = {
