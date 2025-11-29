@@ -14,6 +14,15 @@ struct StockSymbol: Decodable, Hashable {
     var description: String
 }
 
+struct StockDetailView: View {
+    let stock: StockSymbol
+
+    var body: some View {
+        Text("Selected stock: \(stock.company)")
+            .font(.largeTitle)
+    }
+}
+
 struct ContentView: View {
     @State var stocks: [StockSymbol] = []
     
@@ -29,13 +38,20 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            List(stocks, id: \.self) { item in
-                HStack{
-                    Text(item.company)
-                    Text("\(item.initial_price)")
-                    Image(systemName: "arrow.2.circlepath.circle")
-                        .imageScale(.large)
-                        .foregroundStyle(.tint)
+            NavigationStack {
+                List(stocks, id: \.self) { item in
+                    NavigationLink {
+                        StockDetailView(stock: item)
+                    } label: {
+                        HStack{
+                            Text(item.company)
+                            Text(item.initial_price, format: .number.precision(.fractionLength(2)))
+                            Image(systemName: "arrow.2.circlepath.circle")
+                                .imageScale(.large)
+                                .foregroundStyle(.tint)
+                        }
+                    }
+                    
                 }
             }
         }
