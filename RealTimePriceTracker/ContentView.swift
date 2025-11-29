@@ -32,8 +32,9 @@ struct StockDetailView: View {
 }
 
 struct ContentView: View {
-    @State var stocks: [StockSymbol] = []
-    @State var started: Bool = true
+    @State private var stocks: [StockSymbol] = []
+    @State private var started: Bool = true
+    @State private var sockets: [WebSocket] = []
     
     func fetchStocks() -> [StockSymbol] {
         let url = Bundle.main.url(forResource: "stocks", withExtension: "json")
@@ -41,8 +42,19 @@ struct ContentView: View {
         data = try! Data(contentsOf: url!)
         return try! JSONDecoder().decode([StockSymbol].self, from: data)
             .sorted(by: { lhs, rhs in
-            lhs.initial_price > rhs.initial_price
-        })
+                lhs.initial_price > rhs.initial_price
+            })
+    }
+    
+    func disconnectAllSockets() {
+        sockets.forEach { socket in
+            socket.disconnect()        }
+    }
+    
+    func connectAllSockets() {
+        sockets.forEach { socket in
+            socket.connect()
+        }
     }
     
     func startSocket(stock: StockSymbol, callback: @escaping (StockDelta) -> Void) -> WebSocket {
@@ -52,28 +64,26 @@ struct ContentView: View {
         
         socket.onEvent = { event in
             switch event {
-                case .connected(let headers):
-                    break
-                case .disconnected(let reason, let code):
-                    break
-                case .text(let string):
-//                    print("Received text: \(string)")
-                    let data = try! Data(string.utf8)
-                    let delta = try! JSONDecoder().decode(StockDelta.self, from: data)
-                
+            case .connected(_):
+                break
+            case .disconnected(_, _):
+                break
+            case .text(let string):
+                if let data = string.data(using: .utf8),
+                   let delta = try? JSONDecoder().decode(StockDelta.self, from: data) {
                     callback(delta)
-                case .error(let error):
-                    print("Error: \(error)")
-                default:
-                    break
+                }
+            case .error(let error):
+                print("Error: \(error)")
+            default:
+                break
             }
         }
         socket.connect()
         
-        var timer = Timer()
-        Timer.scheduledTimer(withTimeInterval: 2, repeats: true, block: { _ in
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
             socket.write(string: "{ \"symbol\": \"\(stock.symbol)\", \"delta_price\": \(Double.random(in: -20...20)) }", completion: nil)
-            })
+        }
         
         return socket
     }
@@ -104,7 +114,13 @@ struct ContentView: View {
                     ToolbarItem(placement: .topBarLeading) { Text("Conn").foregroundColor(.green) }
                     ToolbarItem(placement: .primaryAction) {
                         Button(started == true ? "Stop" : "Start") {
-                            started = !started
+                            started.toggle()
+                            
+                            if (!started) {
+                                disconnectAllSockets()
+                            } else {
+                                connectAllSockets()
+                            }
                         }
                     }
                 }
@@ -113,22 +129,32 @@ struct ContentView: View {
         }
         .navigationTitle("Menu")
         .padding()
-        .onAppear()
-        {
+        .onAppear {
             stocks = fetchStocks()
             
-            stocks.forEach { item in
-                startSocket(stock: item, callback: { delta in
-                    stocks = stocks.map { item in
-                        if(item.symbol == delta.symbol) {
-                            return StockSymbol(initial_price: item.initial_price, company: item.company, description: item.description, symbol: item.symbol, delta_price: delta.delta_price)
-                        }
-                        
-                        return item
-                    }.sorted(by: { lhs, rhs in
-                        lhs.initial_price + (lhs.delta_price ?? 0) > rhs.initial_price + (rhs.delta_price ?? 0)
-                    })
-                })
+            sockets = stocks.map { item in
+                startSocket(stock: item) { delta in
+                    // Ensure state mutation happens on the main actor
+                    DispatchQueue.main.async {
+                        stocks = stocks
+                            .map { item in
+                                if item.symbol == delta.symbol {
+                                    return StockSymbol(
+                                        initial_price: item.initial_price,
+                                        company: item.company,
+                                        description: item.description,
+                                        symbol: item.symbol,
+                                        delta_price: delta.delta_price
+                                    )
+                                }
+                                return item
+                            }
+                            .sorted(by: { lhs, rhs in
+                                (lhs.initial_price + (lhs.delta_price ?? 0)) >
+                                (rhs.initial_price + (rhs.delta_price ?? 0))
+                            })
+                    }
+                }
             }
         }
     }
