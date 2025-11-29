@@ -151,7 +151,9 @@ struct ContentView: View {
                 .navigationTitle("Stocks")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) { Text( "Conn").foregroundColor(connectedCount >= sockets.count ? .green : .red) }
+                    ToolbarItem(placement: .topBarLeading) { Image(connectedCount >= sockets.count ? "on" : "off")
+                        .resizable()
+                        .frame(width: 20, height: 20) }
                     ToolbarItem(placement: .primaryAction) {
                         Button(started == true ? "Stop" : "Start") {
                             started.toggle()
