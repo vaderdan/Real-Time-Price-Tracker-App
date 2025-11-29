@@ -85,8 +85,11 @@ struct ContentView: View {
                         HStack{
                             Text(item.symbol)
                             Text(item.initial_price + (item.delta_price ?? 0.0), format: .number.precision(.fractionLength(2)))
-                            Image(systemName: "arrow.2.circlepath.circle")
-                                .imageScale(.large)
+                            Image((item.delta_price ?? 0) >= 0 ? "up" : "down")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .scaledToFill()
+                                .clipped()
                                 .foregroundStyle(.tint)
                         }
                     }
