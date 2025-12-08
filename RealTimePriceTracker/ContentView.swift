@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Starscream
+import Combine
 
 struct StockDelta: Decodable, Hashable {
     var symbol: String
@@ -22,57 +23,13 @@ struct StockSymbol: Decodable, Hashable {
     var delta_price: Double? = 0.0
 }
 
-struct StockDetailView: View {
-    @State var stock: StockSymbol
-    var sockets: [WebSocket] = []
-    @State private var cached_onEvent: [((WebSocketEvent) -> Void)?] = []
-
-    var body: some View {
-        HStack {
-            Text("Selected stock: \(stock.company)")
-            Text(stock.symbol)
-            Text(stock.initial_price + (stock.delta_price ?? 0.0), format: .number.precision(.fractionLength(2)))
-            Image((stock.delta_price ?? 0) >= 0 ? "up" : "down")
-                .resizable()
-                .frame(width: 20, height: 20)
-                .scaledToFill()
-                .clipped()
-                .foregroundStyle(.tint)
-        }
-        .onDisappear() {
-            sockets.forEach { item in
-                item.onEvent = cached_onEvent.popLast()!
-            }
-        }
-        .onAppear() {
-            sockets.forEach { item in
-                cached_onEvent.append(item.onEvent)
-                item.onEvent = { event in
-                    switch event {
-                    case .text(let string):
-                        if let data = string.data(using: .utf8),
-                           let delta = try? JSONDecoder().decode(StockDelta.self, from: data) {
-                            if stock.symbol == delta.symbol {
-                                stock.delta_price = delta.delta_price
-                            }
-                        }
-                    case .error(let error):
-                        print("Error: \(String(describing: error))")
-                    default:
-                        break
-                    }
-                }
-            }
-        }
-        
+class StockManager: ObservableObject {
+    @Published var stocks: [StockSymbol] = []
+    
+    init()
+    {
+        stocks = fetchStocks()
     }
-}
-
-struct ContentView: View {
-    @State private var stocks: [StockSymbol] = []
-    @State private var started: Bool = true
-    @State private var sockets: [WebSocket] = []
-    @State private var connectedCount: Int = 0
     
     func fetchStocks() -> [StockSymbol] {
         let url = Bundle.main.url(forResource: "stocks", withExtension: "json")
@@ -83,6 +40,65 @@ struct ContentView: View {
                 lhs.initial_price > rhs.initial_price
             })
     }
+    
+    func updateDeltaPrice(delta : StockDelta) {
+        stocks = stocks
+            .map { item in
+                if item.symbol == delta.symbol {
+                    return StockSymbol(
+                        initial_price: item.initial_price,
+                        company: item.company,
+                        description: item.description,
+                        symbol: item.symbol,
+                        delta_price: delta.delta_price
+                    )
+                }
+                return item
+            }
+            .sorted(by: { lhs, rhs in
+                (lhs.initial_price + (lhs.delta_price ?? 0)) >
+                (rhs.initial_price + (rhs.delta_price ?? 0))
+            })
+    }
+}
+
+struct StockDetailView: View {
+    @ObservedObject var stockManager: StockManager
+    let symbol: String
+
+    private var stock: StockSymbol? {
+        stockManager.stocks.first(where: { $0.symbol == symbol })
+    }
+
+    var body: some View {
+        Group {
+            if let stock {
+                HStack {
+                    Text("Selected stock: \(stock.company)")
+                    Text(stock.symbol)
+                    Text(stock.initial_price + (stock.delta_price ?? 0.0), format: .number.precision(.fractionLength(2)))
+                    Image((stock.delta_price ?? 0) >= 0 ? "up" : "down")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .scaledToFill()
+                        .clipped()
+                        .foregroundStyle(.tint)
+                }
+            } else {
+                Text("Stock not found")
+            }
+        }
+        
+    }
+}
+
+struct ContentView: View {
+    @StateObject private var stockManager: StockManager = .init()
+    @State private var started: Bool = true
+    @State private var sockets: [WebSocket] = []
+    @State private var connectedCount: Int = 0
+    
+    
     
     func disconnectAllSockets() {
         connectedCount = sockets.count
@@ -131,9 +147,9 @@ struct ContentView: View {
     var body: some View {
         VStack {
             NavigationStack {
-                List(stocks, id: \.self) { item in
+                List(stockManager.stocks, id: \.self) { item in
                     NavigationLink {
-                        StockDetailView(stock: item, sockets: sockets)
+                        StockDetailView(stockManager: stockManager, symbol: item.symbol)
                     } label: {
                         HStack{
                             Text(item.symbol)
@@ -171,9 +187,7 @@ struct ContentView: View {
         }
         .padding()
         .onAppear {
-            stocks = fetchStocks()
-            
-            sockets = stocks.map { item in
+            sockets = stockManager.stocks.map { item in
                 startSocket(stock: item, isConnectedCallback: { connected in
                     if(connected) {
                         connectedCount += 1
@@ -183,28 +197,13 @@ struct ContentView: View {
                 }) { delta in
                     // Ensure state mutation happens on the main actor
                     DispatchQueue.main.async {
-                        stocks = stocks
-                            .map { item in
-                                if item.symbol == delta.symbol {
-                                    return StockSymbol(
-                                        initial_price: item.initial_price,
-                                        company: item.company,
-                                        description: item.description,
-                                        symbol: item.symbol,
-                                        delta_price: delta.delta_price
-                                    )
-                                }
-                                return item
-                            }
-                            .sorted(by: { lhs, rhs in
-                                (lhs.initial_price + (lhs.delta_price ?? 0)) >
-                                (rhs.initial_price + (rhs.delta_price ?? 0))
-                            })
+                        stockManager.updateDeltaPrice(delta: delta)
                     }
                 }
             }
         }
     }
+    
 }
 
 #Preview {
