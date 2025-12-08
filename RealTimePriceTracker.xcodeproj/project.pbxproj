@@ -6,41 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXCopyFilesBuildPhase section */
-		3033AD8B2EDB7F6D00616134 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		30A49F812EDABA5500246A63 /* RealTimePriceTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealTimePriceTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C2C3788B68576A0D3533FCB /* Pods_RealTimePriceTracker.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RealTimePriceTracker.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		3033AD8D2EDB7F8900616134 /* Exceptions for "RealTimePriceTracker" folder in "Copy Files" phase from "RealTimePriceTracker" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			attributesByRelativePath = {
-				Frameworks/Starscream.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
-			};
-			buildPhase = 3033AD8B2EDB7F6D00616134 /* CopyFiles */;
-			membershipExceptions = (
-				Frameworks/Starscream.xcframework,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		30A49F832EDABA5500246A63 /* RealTimePriceTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				3033AD8D2EDB7F8900616134 /* Exceptions for "RealTimePriceTracker" folder in "Copy Files" phase from "RealTimePriceTracker" target */,
-			);
 			path = RealTimePriceTracker;
 			sourceTree = "<group>";
 		};
@@ -62,6 +35,7 @@
 			children = (
 				30A49F832EDABA5500246A63 /* RealTimePriceTracker */,
 				30A49F822EDABA5500246A63 /* Products */,
+				8417DF4E8B9D45A913EBAF1A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -71,6 +45,14 @@
 				30A49F812EDABA5500246A63 /* RealTimePriceTracker.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8417DF4E8B9D45A913EBAF1A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3C2C3788B68576A0D3533FCB /* Pods_RealTimePriceTracker.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -83,8 +65,7 @@
 				30A49F7D2EDABA5500246A63 /* Sources */,
 				30A49F7E2EDABA5500246A63 /* Frameworks */,
 				30A49F7F2EDABA5500246A63 /* Resources */,
-				3033AD8A2EDB7DB400616134 /* ShellScript */,
-				3033AD8B2EDB7F6D00616134 /* CopyFiles */,
+				3033ADD12EE4323900616134 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -94,8 +75,6 @@
 				30A49F832EDABA5500246A63 /* RealTimePriceTracker */,
 			);
 			name = RealTimePriceTracker;
-			packageProductDependencies = (
-			);
 			productName = RealTimePriceTracker;
 			productReference = 30A49F812EDABA5500246A63 /* RealTimePriceTracker.app */;
 			productType = "com.apple.product-type.application";
@@ -145,7 +124,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		3033AD8A2EDB7DB400616134 /* ShellScript */ = {
+		3033ADD12EE4323900616134 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 8;
 			files = (
@@ -160,7 +139,7 @@
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
-			shellPath = "/opt/homebrew/bin/carthage copy-frameworks";
+			shellPath = "./carthage.sh copy-frameworks";
 			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n";
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -303,15 +282,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = C3V66S73CA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -325,7 +303,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -335,15 +313,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = C3V66S73CA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -357,7 +334,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
