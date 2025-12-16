@@ -20,11 +20,14 @@ struct StockSymbol: Decodable, Hashable {
     var description: String
     var symbol: String
 
+    var delta_price_old: Double? = 0.0
     var delta_price: Double? = 0.0
 }
 
 class StockManager: ObservableObject {
     @Published var stocks: [StockSymbol] = []
+    @Published var blinking: [Bool] = []
+    
     
     init()
     {
@@ -50,6 +53,7 @@ class StockManager: ObservableObject {
                         company: item.company,
                         description: item.description,
                         symbol: item.symbol,
+                        delta_price_old: item.delta_price ?? 0.0,
                         delta_price: delta.delta_price
                     )
                 }
@@ -69,13 +73,17 @@ struct StockDetailView: View {
     private var stock: StockSymbol? {
         stockManager.stocks.first(where: { $0.symbol == symbol })
     }
-
+    
+    @State private var cancelables: Set<AnyCancellable> = []
+    @State private var blinking: Bool = false
+    
     var body: some View {
         Group {
             if let stock {
                 HStack {
                     Text("Selected stock: \(stock.company)")
                     Text(stock.symbol)
+                    Spacer()
                     Text(stock.initial_price + (stock.delta_price ?? 0.0), format: .number.precision(.fractionLength(2)))
                     Image((stock.delta_price ?? 0) >= 0 ? "up" : "down")
                         .resizable()
@@ -84,11 +92,75 @@ struct StockDetailView: View {
                         .clipped()
                         .foregroundStyle(.tint)
                 }
+                .opacity(blinking ? 0 : 1)
+                .animation(.easeOut(duration: 0.5))
+                .task {
+                    self.stockManager.$stocks
+                        .compactMap { item -> StockSymbol? in
+                            let firstItem = item.first { item -> Bool  in
+                                return symbol == item.symbol
+                            }
+                            return firstItem
+                        }
+                        .removeDuplicates()
+                        .sink(receiveValue: { s in
+//                            print(">", s.delta_price as Any, s.delta_price_old as Any)
+                            withAnimation {
+                                blinking = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                                    blinking = false
+                                })
+                            }
+                        })
+                        .store(in: &cancelables)
+                }
             } else {
                 Text("Stock not found")
             }
         }
         
+    }
+}
+
+struct StockListView: View {
+    @ObservedObject var stockManager: StockManager
+    @State private var blinking: Bool = false
+    @State private var cancelables: Set<AnyCancellable> = []
+    var item: StockSymbol
+    
+    var body: some View {
+        HStack{
+            Text(item.symbol)
+            Text(item.initial_price + (item.delta_price ?? 0.0), format: .number.precision(.fractionLength(2)))
+            Image((item.delta_price ?? 0) >= 0 ? "up" : "down")
+                .resizable()
+                .frame(width: 20, height: 20)
+                .scaledToFill()
+                .clipped()
+                .foregroundStyle(.tint)
+        }
+        .opacity(blinking ? 0 : 1)
+        .animation(.easeOut(duration: 0.5))
+        .task {
+            self.stockManager.$stocks
+                .compactMap { item -> StockSymbol? in
+                    let firstItem = item.first { item -> Bool  in
+                        return self.item.symbol == item.symbol
+                    }
+                    return firstItem
+                }
+                .removeDuplicates()
+                .sink(receiveValue: { s in
+//                            print(">", s.delta_price as Any, s.delta_price_old as Any)
+                    withAnimation {
+                        blinking = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                            blinking = false
+                        })
+                    }
+                })
+                .store(in: &cancelables)
+        }
     }
 }
 
@@ -137,7 +209,7 @@ struct ContentView: View {
         }
         socket.connect()
         
-        Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
+        Timer.scheduledTimer(withTimeInterval: 2 + Double.random(in: 0..<0.5), repeats: true) { _ in
             socket.write(string: "{ \"symbol\": \"\(stock.symbol)\", \"delta_price\": \(Double.random(in: -20...20)) }", completion: nil)
         }
         
@@ -151,16 +223,7 @@ struct ContentView: View {
                     NavigationLink {
                         StockDetailView(stockManager: stockManager, symbol: item.symbol)
                     } label: {
-                        HStack{
-                            Text(item.symbol)
-                            Text(item.initial_price + (item.delta_price ?? 0.0), format: .number.precision(.fractionLength(2)))
-                            Image((item.delta_price ?? 0) >= 0 ? "up" : "down")
-                                .resizable()
-                                .frame(width: 20, height: 20)
-                                .scaledToFill()
-                                .clipped()
-                                .foregroundStyle(.tint)
-                        }
+                        StockListView(stockManager: stockManager, item: item)
                     }
                     
                 }
